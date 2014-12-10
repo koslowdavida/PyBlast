@@ -54,6 +54,23 @@ def enemy_spawn(enemy_list):
     enemy_list.append(x)
     return enemy_list
 
+#Enemy Move
+def enemy_move(enemy_list):
+    if len(enemy_list) > 0:
+        for i, o in enumerate(enemy_list):
+            if o.direction == "up":
+                o.y = o.y - o.speed
+            else:
+                o.y = o.y + o.speed
+            #print (o.y)
+    return enemy_list
+
+#Enemy Draw
+def update_enemy(enemy_list):
+    for i, o in enumerate(enemy_list):
+            pygame.draw.circle(screen, o.color, [o.x, o.y], o.radius, 0)
+
+
 #Bullet Purge
 def bullet_purge(bullet_list):
     #print ("bullet purge")
@@ -85,7 +102,7 @@ def bullet_move(bullet_list):
             #print (o.y)
     return bullet_list
 
-#Draw Bullets
+#Bullet Draw
 def update_bullets(bullet_list):
     for i, o in enumerate(bullet_list):
         if o.direction == "up":
@@ -93,7 +110,6 @@ def update_bullets(bullet_list):
         else:
             pygame.draw.circle(screen, o.color, [o.x, o.y], o.radius, 0)
 
-#Draw Enemy
 
 #Movement Subroutines
 def moveup(y):
@@ -264,7 +280,7 @@ while not done:
     if enemy_spawn_count > 79 and len(enemy_list) < 10:
         enemy_list = enemy_spawn(enemy_list)
         enemy_spawn_count = 0
-        #print ("E spawned")
+        print ("E spawned")
     else:
         if enemy_spawn_count < 80:
             enemy_spawn_count += 1
@@ -284,23 +300,6 @@ while not done:
     #################################################################################################################
 
     ##############################################PLAYER MOVE########################################################
-    #################################################################################################################
-
-    ##############################################ENEMY MOVE#########################################################
-    #################################################################################################################
-
-    ##############################################COLLISION##########################################################
-    #################################################################################################################
-
-
-
-
-
-
-
-
-
-    ##############################################PLAYER MOVEMENT####################################################
     if wflag == 1:
         player.y = moveup(player.y)
     if sflag == 1:
@@ -309,7 +308,14 @@ while not done:
         player.x = moveleft(player.x)
     if dflag == 1:
         player.x = moveright(player.x)
-    ##################################################################################################################
+    #################################################################################################################
+
+    ##############################################ENEMY MOVE#########################################################
+    enemy_list = enemy_move(enemy_list)
+    #################################################################################################################
+
+    ##############################################COLLISION##########################################################
+    #################################################################################################################
 
 
 
@@ -332,6 +338,7 @@ while not done:
         shootstopper = shoot(player.x, player.y)
     update_circle(player.x, player.y)
     update_bullets(bullet_list)
+    update_enemy(enemy_list)
     # --- Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
     # --- Limit to 60 frames per second

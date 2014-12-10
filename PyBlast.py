@@ -71,6 +71,12 @@ def update_enemy(enemy_list):
             pygame.draw.circle(screen, o.color, [o.x, o.y], o.radius, 0)
 
 
+#Enemy Fire graphic
+
+#Enemy Death Graphic
+
+
+
 #Bullet Purge
 def bullet_purge(bullet_list):
     #print ("bullet purge")
@@ -78,16 +84,16 @@ def bullet_purge(bullet_list):
         #Offscreen? Delete it (remove it from the bullet_list)
         if o.y > 850 or o.y < -20 or o.bump == True:
             del bullet_list[i]
-            print ("Bullet gone")
+            #print ("Bullet gone")
 
     return bullet_list
 
 #Bullet spawn
-def bullet_spawn(bullet_list,ship):
-    print ("Bullet spawns at " + str(ship.y))
+def bullet_spawn(bullet_list, ship):
+    #print ("Bullet spawns at " + str(ship.y))
     x = Bullet.Bullet(ship.x, ship.y, ship.direction)
     bullet_list.append(x)
-    print("new bullet")
+    #print("new bullet")
     return bullet_list
 
 
@@ -108,7 +114,7 @@ def update_bullets(bullet_list):
         if o.direction == "up":
             pygame.draw.circle(screen, o.color, [o.x, o.y], o.radius, 0)
         else:
-            pygame.draw.circle(screen, o.color, [o.x, o.y], o.radius, 0)
+            pygame.draw.circle(screen, YELLOW, [o.x, o.y], o.radius, 0)
 
 
 #Movement Subroutines
@@ -130,16 +136,33 @@ def moveright(x):
     return x+5
 
 #Circle_Position_Update
-def update_circle(x, y):
-    pygame.draw.circle(screen, RED, [x, y], 33, 0)
+def update_circle(x, y, radius):
+    pygame.draw.circle(screen, RED, [x, y], radius, 0)
     return
 
-#Shoot function
+#Player Fire graphic
 def shoot (x, y):
     pygame.draw.circle(screen, YELLOW, [x, y-20], 20, 0)
 
-    print("!BANG!")
+    #print("!BANG!")
     return 1
+
+#Collision function
+def collide(bullet_list, enemy_list, player):
+    #print (player.x, player.y)
+    for i, o in enumerate(bullet_list):
+        for f, p in enumerate(enemy_list):
+            if o.direction == "up" and o.x > p.x-p.radius and o.x < p.x+p.radius and o.y < p.y+p.radius and o.y > p.y-p.radius and o.bump == False:
+                o.bump = True
+                p.health = p.health - o.damage
+                print ("collision")
+        if o.direction == "down" and o.x > player.x-player.radius and o.x < player.x+player.radius and o.y < player.y+player.radius and o.y > player.y-player.radius and o.bump == False:
+            o.bump = True
+            player.health = player.health - o.damage
+            print ("collision")
+
+
+#PRINT YOU LOSE
 
 
 
@@ -277,18 +300,25 @@ while not done:
 
 
     #Enemy Spawn
-    if enemy_spawn_count > 79 and len(enemy_list) < 10:
+    if enemy_spawn_count > 49 and len(enemy_list) < 10:
         enemy_list = enemy_spawn(enemy_list)
         enemy_spawn_count = 0
-        print ("E spawned")
+        #print ("E spawned")
     else:
-        if enemy_spawn_count < 80:
+        if enemy_spawn_count < 50:
             enemy_spawn_count += 1
         #print ("e spawn in" + str(80 - enemy_spawn_count))
 
     #################################################################################################################
 
     ##############################################BULLETS############################################################
+
+    for shipnum, enemyship in enumerate(enemy_list):
+        if enemyship.shoot_countdown == 0:
+            bullet_spawn(bullet_list, enemyship)
+            enemyship.shoot_countdown = enemyship.shoot_countdown_static
+        else:
+            enemyship.shoot_countdown -= 1
 
     if shootflag == 1 and shootstopper != 1:
         bullet_list = bullet_spawn(bullet_list, player)
@@ -315,6 +345,7 @@ while not done:
     #################################################################################################################
 
     ##############################################COLLISION##########################################################
+    collide(bullet_list, enemy_list, player)
     #################################################################################################################
 
 
@@ -336,7 +367,7 @@ while not done:
 
     if shootflag == 1 and shootstopper != 1:
         shootstopper = shoot(player.x, player.y)
-    update_circle(player.x, player.y)
+    update_circle(player.x, player.y, player.radius)
     update_bullets(bullet_list)
     update_enemy(enemy_list)
     # --- Go ahead and update the screen with what we've drawn.

@@ -32,6 +32,15 @@ windowy = 1000
 size = (windowx, windowy)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("PyBlast")
+myfont = pygame.font.SysFont("monospace", 50)
+YOU_LOSE_LABEL = myfont.render("YOU SUCK", 1, (255, 255, 0))
+RESTART_LABEL = myfont.render("Restart?", 1, (255, 255, 0))
+WOAH_LABEL = myfont.render("WOAH!", 1, (255, 255, 0))
+COOL_LABEL = myfont.render("COOL!", 1, (255, 255, 0))
+NO_WAY_LABEL = myfont.render("NO WAY!", 1, (255, 255, 0))
+TOTES_SICK_LABEL = myfont.render("TOTES SICK!", 1, (255, 255, 0))
+LOL_LABEL = myfont.render("LOL!", 1, (255,255,0))
+
 
 # Loop until the user clicks the close button.
 done = False
@@ -165,7 +174,8 @@ def shoot (x, y, radius):
     return 1
 
 #Collision function
-def collide(bullet_list, enemy_list, player, collision_flash_bang):
+def collide(bullet_list, enemy_list, player, collision_flash_bang, death):
+
     #print (player.x, player.y)
     for i, o in enumerate(bullet_list):
         for f, p in enumerate(enemy_list):
@@ -176,6 +186,8 @@ def collide(bullet_list, enemy_list, player, collision_flash_bang):
                 #collision_flash_bang = 1
             if p.x + p.radius > player.x-player.radius and p.x - p.radius < player.x+player.radius and p.y - p.radius < player.y+player.radius and p.y + p.radius > player.y-player.radius:
                 player.radius = player.radius - p.health
+                if player.health < 1 or player.radius < 1:
+                    death = True
                 p.health = 0
                 p.bump = True
                 collision_flash_bang = 1
@@ -183,14 +195,22 @@ def collide(bullet_list, enemy_list, player, collision_flash_bang):
             o.bump = True
             player.radius = player.radius - o.damage
             player.health = player.health - o.damage
+
             print ("collision")
             collision_flash_bang = 1
-    return collision_flash_bang
+    if player.health < 1 or player.radius < 1:
+        death = True
+    return collision_flash_bang, death
 
 def flash(windowx, windowy):
     pygame.draw.circle(screen, ORANGE, [windowx//2, windowy//2], windowx, 0)
 
 #PRINT YOU LOSE
+def game_over():
+    pygame.draw.circle(screen, RED, [windowx//2, windowy//2], windowx, 0)
+    pygame.draw.rect(screen, BLACK, (windowx//2-100, windowy//2-100, windowx//9, windowy//10), 7)
+    screen.blit(YOU_LOSE_LABEL, (windowx//2-windowx//15, windowy//2-windowy//5))
+    screen.blit(RESTART_LABEL, ())
 
 
 
@@ -375,7 +395,10 @@ while not done:
     #################################################################################################################
 
     ##############################################COLLISION##########################################################
-    collision_flash_flag =  collide(bullet_list, enemy_list, player, collision_flash_flag)
+    collision_flash_flag, player_death =  collide(bullet_list, enemy_list, player, collision_flash_flag, player_death)
+    if player.radius < 1:
+        player.radius = 0
+
     #################################################################################################################
 
 
@@ -394,19 +417,22 @@ while not done:
     # First, clear the screen to white. Don't put other drawing commands
     # above this, or they will be erased with this command.
     screen.fill(BLACK)
+    if player_death == True:
+        game_over()
+    else:
+        if collision_flash_flag == 1:
+            print ("flash")
+            flash(windowx, windowy)
+            collision_flash_flag = 0
+        if shootflag == 1 and shootstopper != 1:
+            shootstopper = shoot(player.x, player.y, player.radius)
 
-    if collision_flash_flag == 1:
-        print ("flash")
-        flash(windowx, windowy)
-        collision_flash_flag = 0
-    if shootflag == 1 and shootstopper != 1:
-        shootstopper = shoot(player.x, player.y, player.radius)
-
-    update_bullets(bullet_list)
-    update_enemy(enemy_list)
-    update_circle(player.x, player.y, player.radius, player.level)
+        update_bullets(bullet_list)
+        update_enemy(enemy_list)
+        update_circle(player.x, player.y, player.radius, player.level)
     # --- Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
+
     # --- Limit to 60 frames per second
     clock.tick(60)
 pygame.quit()
